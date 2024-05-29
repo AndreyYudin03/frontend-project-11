@@ -1,0 +1,32 @@
+name: actionTest
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run ESLint
+        run: npx eslint .
+
+      - name: Run Jest tests
+        run: npm test
+
+      - name: Run test coverage report
+        run: npm run coverage
+
+      - name: Upload coverage report to Code Climate
+        uses: paambaati/codeclimate-action@v5.0.0
+        with:
+          debug: true
+        env:
+          CC_TEST_REPORTER_ID: ${{secrets.CC_TEST_REPORTER_ID}}
