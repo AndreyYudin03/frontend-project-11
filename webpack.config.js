@@ -20,6 +20,13 @@ export default {
     hot: true,
   },
   plugins: [new HtmlWebpackPlugin({ template: "./src/index.html" })],
+  optimization: {
+    // splitChunks: {
+    //   chunks: "all",
+    // },
+    minimize: true,
+    usedExports: true,
+  },
   module: {
     rules: [
       {

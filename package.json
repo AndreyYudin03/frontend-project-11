@@ -2,8 +2,8 @@
   "name": "@hexlet/code",
   "version": "1.0.0",
   "type": "module",
-  "description": "RSS",
-  "main": "src/index.js",
+  "description": "RSS aggregator - is a service that allows you to add an unlimited number of RSS feeds, updates them yourself and adds new entries to the general stream.",
+  "main": "src/js/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "npx webpack --mode production",
