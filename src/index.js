@@ -11,8 +11,8 @@ const feedURLs = [];
 const urlValidationSchema = object({
   urlValue: string()
     .url("Введите корректный URL")
-    // .min(1, "Введите корректный URL")
-    .notOneOf(feedURLs, "Такой RSS уже существует"),
+    .min(1, "Введите  корректный URL"),
+  // .notOneOf(feedURLs)
 });
 
 // MODEL
@@ -23,7 +23,7 @@ const buttonForm = form.querySelector("button[type=submit]");
 const state = {
   reset() {
     this.form.input.urlValue = "";
-    this.form.submit.active = false;
+    // this.form.submit.active = false;
     this.form.error = "";
   },
   form: {
@@ -53,6 +53,8 @@ const validateInput = (input) => {
 
 // input watched state
 const watchedState = onChange(state, (path) => {
+  console.log(path);
+
   render(state, path);
   if (path === "form.input.urlValue") {
     validateInput(state.form.input).finally(() => {
@@ -64,6 +66,8 @@ const watchedState = onChange(state, (path) => {
 // event listeners
 formInput.addEventListener("input", (e) => {
   watchedState.form.input.urlValue = e.target.value;
+
+  console.log(state);
 });
 
 buttonForm.addEventListener("click", (e) => {
@@ -73,9 +77,13 @@ buttonForm.addEventListener("click", (e) => {
     watchedState.form.error = "Такой RSS уже существует";
     formInput.focus();
   } else {
+    watchedState.form.submit.active = false;
     feedURLs.push(state.form.input.urlValue);
     state.reset();
     form.reset();
     formInput.focus();
+    // Make the submit button inactive
   }
+
+  console.log(feedURLs, state);
 });

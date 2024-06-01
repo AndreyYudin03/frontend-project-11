@@ -4,10 +4,8 @@ const formSubmit = document.querySelector("button[type=submit]");
 export const render = (state, path) => {
   switch (path) {
     case "form.input.urlValue":
-      updateInputView(state);
-      updateSubmitView(state);
-      break;
     case "form.submit.active":
+      updateInputView(state);
       updateSubmitView(state);
       break;
     case "form.error":
@@ -26,6 +24,8 @@ const updateInputView = (state) => {
 };
 
 const updateSubmitView = (state) => {
-  formSubmit.disabled =
-    !state.form.submit.active || state.form.input.urlValue === "";
+  const hasError = state.form.error.length !== 0;
+  const { active } = state.form.submit;
+
+  formSubmit.disabled = hasError || !active;
 };
