@@ -13,6 +13,13 @@ export default {
         text: "Добавить",
       },
     },
+    main: {
+      postsTitle: "Посты",
+      feedsTitle: "Фиды",
+    },
+    invalid_url: "Ресурс не содержит валидный RSS",
     enter_valid_url: "Ссылка должна быть валидным URL",
+    rss_exists: "RSS уже существует",
+    rss_successful: "RSS успешно добавлен",
   },
 };
