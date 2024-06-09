@@ -1,5 +1,7 @@
+// import "bootstrap/dist/css/bootstrap.min.css";
+import "bootstrap/dist/js/bootstrap.bundle.min.js";
+
 import "./scss/styles.scss";
-// import * as bootstrap from "bootstrap";
 import { object, string, setLocale } from "yup";
 import onChange from "on-change";
 import { render } from "./view.js";
@@ -31,7 +33,28 @@ i18nextInstance
     });
     // HTML LOAD
     document.addEventListener("DOMContentLoaded", () => {
-      const html = `<main class="flex-grow-1">
+      const html = `<div class="modal fade" id="modal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+  <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        ...
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">${i18nextInstance.t(
+          "modalWindow.close"
+        )}</button>
+        <a class="btn btn-primary full-article" href="" role="button" target="_blank" rel="noopener noreferrer">${i18nextInstance.t(
+          "modalWindow.read"
+        )}</a>
+      </div>
+    </div>
+  </div>
+</div>
+      <main class="flex-grow-1">
       <section class="container-fluid bg-dark p-5">
         <div class="row">
           <div class="col-md-10 col-lg-8 mx-auto text-white">
@@ -88,22 +111,17 @@ i18nextInstance
       const form = document.querySelector(".rss-form");
       const formInput = document.querySelector("#url-input");
       const buttonForm = document.querySelector("button[type=submit]");
-
-      // feeds
-      // const uniqID = new UniqueIDGenerator();
+      const postsContainer = document.querySelector(".posts");
+      const modalWindow = document.querySelector(".modal");
 
       // input validate
       const urlValidationSchema = object({
         urlValue: string().url(),
-        // urlValue: string().url(i18nextInstance.t("enter_valid_url")),
-        // .min(1, i18nextInstance.t("enter_valid_url")),
-        // .notOneOf(feedURLs)
       });
 
       const state = {
         reset() {
           this.form.input.urlValue = "";
-          // this.form.submit.active = false;
           this.form.error = "";
         },
         form: {
@@ -114,12 +132,15 @@ i18nextInstance
             active: false,
           },
           error: "",
-          request: "successful", // waiting, sending, failed, successful
+          request: "successful",
         },
         urls: [],
         feeds: [],
         posts: [],
+        readPost: [],
       };
+
+      let updateTimeoutID;
 
       // CONTROLLER
       const validateInput = (input) => {
@@ -138,7 +159,6 @@ i18nextInstance
       // input watched state
       const watchedState = onChange(state, (path) => {
         console.log(path);
-
         render(state, path, i18nextInstance);
         if (path === "form.input.urlValue") {
           validateInput(state.form.input).finally(() => {
@@ -148,14 +168,10 @@ i18nextInstance
       });
 
       // event listeners
-      // input
       formInput.addEventListener("input", (e) => {
         watchedState.form.input.urlValue = e.target.value;
-
-        console.log(state);
       });
 
-      // submit
       buttonForm.addEventListener("click", (e) => {
         e.preventDefault();
 
@@ -163,9 +179,7 @@ i18nextInstance
           watchedState.form.error = i18nextInstance.t("rss_exists");
           formInput.focus();
         } else {
-          // watchedState.form.submit.active = false;
           watchedState.form.request = "sending";
-          // axios
           const { urlValue } = state.form.input;
           const proxyUrl = `https://allorigins.hexlet.app/get?disableCache=true&url=${encodeURIComponent(
             urlValue
@@ -174,13 +188,8 @@ i18nextInstance
             .get(proxyUrl)
             .then((response) => {
               if (response.data.status.http_code === 404) {
-                console.log("404");
                 watchedState.form.request = "failed";
               } else {
-                const parser = new DOMParser();
-                console.log(
-                  parser.parseFromString(response.data.contents, "text/xml")
-                );
                 const parsedRSS = parsRSS(response.data.contents);
                 const urlID = uniqueIDGenerator.generateID();
 
@@ -189,18 +198,14 @@ i18nextInstance
                   link: urlValue,
                 });
 
-                // posts update
-                const posts = [];
-                parsedRSS.posts.forEach((post) => {
-                  posts.push({
-                    ...post,
-                    id: uniqueIDGenerator.generateID(),
-                    urlID,
-                  });
-                });
+                const posts = parsedRSS.posts.map((post) => ({
+                  ...post,
+                  id: uniqueIDGenerator.generateID(),
+                  urlID,
+                  state: "new", // viewed
+                }));
                 watchedState.posts.unshift(...posts);
 
-                // feeds update
                 watchedState.feeds.unshift({
                   id: uniqueIDGenerator.generateID(),
                   urlID,
@@ -208,26 +213,91 @@ i18nextInstance
                   feedDescription: parsedRSS.feedDescription,
                 });
 
-                // watchedState.feeds = state.feeds;
                 watchedState.form.request = "successful";
-
                 state.reset();
                 form.reset();
 
-                // console.log(rssItems);
+                if (!updateTimeoutID) {
+                  updateTimeoutID = setTimeout(checkForUpdates, 5000);
+                }
               }
             })
-            .catch((error) => {
+            .catch(() => {
               watchedState.form.request = "failed";
-              console.log(error);
             })
             .finally(() => {
-              // state.reset();
-              // form.reset();
               formInput.focus();
               console.log(state);
             });
         }
       });
+
+      postsContainer.addEventListener("click", (e) => {
+        const element = e.target;
+        if (element.tagName === "A" || element.tagName === "BUTTON") {
+          const elementID = element.getAttribute("data-id");
+          const readPostID = state.posts.findIndex(
+            (post) => post.id.toString() === elementID
+          );
+          if (readPostID !== -1) {
+            state.posts[readPostID].state = "read";
+            watchedState.readPost = element;
+          }
+        }
+      });
+
+      modalWindow.addEventListener("show.bs.modal", (e) => {
+        const button = e.relatedTarget;
+        console.log(button);
+
+        const title = button.getAttribute("data-bs-title");
+        const description = button.getAttribute("data-bs-description");
+        const link = button.previousElementSibling.getAttribute("href");
+
+        const modalTitle = modalWindow.querySelector(".modal-title");
+        const modalBody = modalWindow.querySelector(".modal-body");
+        const modalRead = modalWindow.querySelector("A");
+
+        modalTitle.textContent = title;
+        modalBody.textContent = description;
+        modalRead.setAttribute("href", link);
+        // modalRead.setAttribute('href')
+      });
+
+      const checkForUpdates = () => {
+        state.urls.forEach((url) => {
+          const proxyUrl = `https://allorigins.hexlet.app/get?disableCache=true&url=${encodeURIComponent(
+            url.link
+          )}`;
+          axios
+            .get(proxyUrl)
+            .then((response) => {
+              if (response.data.status.http_code !== 404) {
+                const parsedRSS = parsRSS(response.data.contents);
+
+                const newPosts = parsedRSS.posts
+                  .filter((post) => {
+                    return !state.posts.some(
+                      (statePost) => statePost.postHref === post.postHref
+                    );
+                  })
+                  .map((post) => {
+                    return {
+                      ...post,
+                      id: uniqueIDGenerator.generateID(),
+                      urlID: url.id,
+                    };
+                  });
+
+                watchedState.posts.unshift(...newPosts);
+              }
+            })
+            .catch((error) => {
+              console.log(`Failed to update URL ${url.link}:`, error);
+            });
+        });
+
+        updateTimeoutID = setTimeout(checkForUpdates, 5000);
+      };
     });
   });

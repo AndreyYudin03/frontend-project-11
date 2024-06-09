@@ -21,9 +21,6 @@ export default {
   },
   plugins: [new HtmlWebpackPlugin({ template: "./src/index.html" })],
   optimization: {
-    // splitChunks: {
-    //   chunks: "all",
-    // },
     minimize: true,
     usedExports: true,
   },
@@ -40,18 +37,15 @@ export default {
         },
       },
       {
+        test: /\.css$/i,
+        use: ["style-loader", "css-loader"],
+      },
+      {
         test: /\.(scss)$/,
         use: [
+          "style-loader",
+          "css-loader",
           {
-            // Adds CSS to the DOM by injecting a `<style>` tag
-            loader: "style-loader",
-          },
-          {
-            // Interprets `@import` and `url()` like `import/require()` and will resolve them
-            loader: "css-loader",
-          },
-          {
-            // Loader for webpack to process CSS with PostCSS
             loader: "postcss-loader",
             options: {
               postcssOptions: {
@@ -59,10 +53,7 @@ export default {
               },
             },
           },
-          {
-            // Loads a SASS/SCSS file and compiles it to CSS
-            loader: "sass-loader",
-          },
+          "sass-loader",
         ],
       },
     ],

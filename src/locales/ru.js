@@ -15,7 +15,12 @@ export default {
     },
     main: {
       postsTitle: "Посты",
+      postWatch: "Просмотр",
       feedsTitle: "Фиды",
+    },
+    modalWindow: {
+      close: "Закрыть",
+      read: "Читать полностью",
     },
     invalid_url: "Ресурс не содержит валидный RSS",
     enter_valid_url: "Ссылка должна быть валидным URL",

@@ -1,3 +1,8 @@
+import { read } from "@popperjs/core";
+import * as bootstrap from "bootstrap";
+// import "bootstrap/dist/css/bootstrap.min.css";
+// import "bootstrap/dist/js/bootstrap.bundle.min.js";
+
 export const render = (state, path, i18nextInstance) => {
   const formInput = document.querySelector("#url-input");
   const formSubmit = document.querySelector("button[type=submit]");
@@ -33,8 +38,6 @@ export const render = (state, path, i18nextInstance) => {
           formFeedback.textContent = i18nextInstance.t("invalid_url");
           break;
         case "successful":
-          // updatePostsView(state, postsContainer);
-          // updateFeedsView(state, feedsContainer);
           formSubmit.disabled = true;
           formInput.disabled = false;
           formFeedback.classList.replace("text-danger", "text-success");
@@ -51,6 +54,10 @@ export const render = (state, path, i18nextInstance) => {
       break;
     case "feeds":
       updateFeedsView(state, feedsContainer, i18nextInstance);
+      break;
+    case "readPost":
+      updatePostReadView(state);
+      // renderModalView(state);
       break;
     default:
       throw new Error(`(Render) Unknown path: ${path}`);
@@ -90,9 +97,19 @@ const updateFormFeedback = (state, formFeedback) => {
 const updatePostsView = (state, postsContainer, i18nextInstance) => {
   const posts = state.posts
     .map((post) => {
+      const postFont =
+        post.state === "read" ? "fw-normal link-dark" : "fw-bold";
       return `<li class="list-group-item d-flex justify-content-between align-items-start border-0 border-end-0">
-        <a href="${post.postHref}" class="fw-bold" data-id="${post.id}" target="_blank" rel="noopener noreferrer">${post.postTitle}</a>
-        <button type="button" class="btn btn-outline-primary btn-sm" data-id="${post.id}" data-bs-toggle="modal" data-bs-target="#modal">Просмотр</button>
+        <a href="${post.postHref}" class="${postFont}" data-id="${
+        post.id
+      }" target="_blank" rel="noopener noreferrer">${post.postTitle}</a>
+        <button type="button" class="btn btn-outline-primary btn-sm" data-id="${
+          post.id
+        }" data-bs-toggle="modal" data-bs-target="#modal" data-bs-title="${
+        post.postTitle
+      }" data-bs-description="${post.postDescription}">
+        ${i18nextInstance.t("main.postWatch")}
+        </button>
       </li>`;
     })
     .join("\n");
@@ -125,4 +142,31 @@ const updateFeedsView = (state, feedsContainer, i18nextInstance) => {
   ${feeds}
   </ul>
   </div>`;
+};
+
+const updatePostReadView = (state) => {
+  const { readPost } = state;
+
+  const updateReadPostClass = (element) => {
+    element.classList.replace("fw-bold", "fw-normal");
+    element.classList.add("link-dark");
+  };
+
+  if (readPost.tagName === "A") {
+    updateReadPostClass(readPost);
+    console.log("A tagName");
+  } else if (readPost.tagName === "BUTTON") {
+    const liContainer = readPost.closest("li");
+    if (liContainer) {
+      const postTitle = liContainer.querySelector("a");
+      if (postTitle) {
+        updateReadPostClass(postTitle);
+        console.log("BUTTON tagName");
+      } else {
+        console.error("No A tag found inside LI container");
+      }
+    } else {
+      console.error("No LI container found for BUTTON");
+    }
+  }
 };
