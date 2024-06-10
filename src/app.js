@@ -161,7 +161,7 @@ export default (i18nextInstance) => {
       axios
         .get(proxyUrl)
         .then((response) => {
-          if (response.data.status.http_code !== 404) {
+          if (response.data.status && response.data.status.http_code !== 404) {
             const parsedRSS = parsRSS(response.data.contents);
 
             const newPosts = parsedRSS.posts
@@ -177,6 +177,10 @@ export default (i18nextInstance) => {
               }));
 
             watchedState.posts.unshift(...newPosts);
+          } else {
+            console.log(
+              `Failed to update URL ${url.link}: HTTP code is 404 or status is undefined`,
+            );
           }
         })
         .catch((error) => {

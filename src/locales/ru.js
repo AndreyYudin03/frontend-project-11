@@ -26,6 +26,6 @@ export default {
       responseError: 'Нет ответа от сервера',
       requestError: 'Невозможно выполнить запрос',
     },
-    successfulRequest: 'RSS успешно добавлен',
+    successfulRequest: 'RSS успешно загружен',
   },
 };
