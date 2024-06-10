@@ -16,6 +16,7 @@ export default (i18nextInstance) => {
       url: i18nextInstance.t('form.errors.enterValidURL'),
     },
   });
+
   // HTML LOAD
   const html = `<div class="modal fade" id="modal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -161,7 +162,11 @@ export default (i18nextInstance) => {
       axios
         .get(proxyUrl)
         .then((response) => {
-          if (response.data.status && response.data.status.http_code !== 404) {
+          if (
+            response.data
+            && response.data.status
+            && response.data.status.http_code !== 404
+          ) {
             const parsedRSS = parsRSS(response.data.contents);
 
             const newPosts = parsedRSS.posts
@@ -206,35 +211,44 @@ export default (i18nextInstance) => {
       axios
         .get(proxyUrl)
         .then((response) => {
-          const parsedRSS = parsRSS(response.data.contents);
-          const urlID = uniqueIDGenerator.generateID();
+          if (
+            response.data
+            && response.data.status
+            && response.data.status.http_code !== 404
+          ) {
+            const parsedRSS = parsRSS(response.data.contents);
+            const urlID = uniqueIDGenerator.generateID();
 
-          state.urls.push({
-            id: urlID,
-            link: urlValue,
-          });
+            state.urls.push({
+              id: urlID,
+              link: urlValue,
+            });
 
-          const posts = parsedRSS.posts.map((post) => ({
-            ...post,
-            id: uniqueIDGenerator.generateID(),
-            urlID,
-            state: 'new', // viewed
-          }));
-          watchedState.posts.unshift(...posts);
+            const posts = parsedRSS.posts.map((post) => ({
+              ...post,
+              id: uniqueIDGenerator.generateID(),
+              urlID,
+              state: 'new', // viewed
+            }));
+            watchedState.posts.unshift(...posts);
 
-          watchedState.feeds.unshift({
-            id: uniqueIDGenerator.generateID(),
-            urlID,
-            feedTitle: parsedRSS.feedTitle,
-            feedDescription: parsedRSS.feedDescription,
-          });
+            watchedState.feeds.unshift({
+              id: uniqueIDGenerator.generateID(),
+              urlID,
+              feedTitle: parsedRSS.feedTitle,
+              feedDescription: parsedRSS.feedDescription,
+            });
 
-          watchedState.form.request = 'successful';
-          state.reset();
-          form.reset();
+            watchedState.form.request = 'successful';
+            state.reset();
+            form.reset();
 
-          if (!updateTimeoutID) {
-            updateTimeoutID = setTimeout(checkForUpdates, 5000);
+            if (!updateTimeoutID) {
+              updateTimeoutID = setTimeout(checkForUpdates, 5000);
+            }
+          } else {
+            watchedState.form.error = i18nextInstance.t('errors.invalidRSS');
+            console.log(`Invalid RSS response from ${urlValue}`);
           }
         })
         .catch((error) => {
@@ -245,11 +259,9 @@ export default (i18nextInstance) => {
             console.log(error.response.headers);
           } else if (error.request) {
             watchedState.form.error = i18nextInstance.t('errors.requestError');
-
             console.log(error.request);
           } else {
             watchedState.form.error = i18nextInstance.t('errors.invalidURL');
-
             console.log('Error', error.message);
           }
           watchedState.form.request = 'failed';
