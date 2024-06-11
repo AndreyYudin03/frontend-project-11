@@ -261,7 +261,7 @@ export default (i18nextInstance) => {
             watchedState.form.error = i18nextInstance.t('errors.requestError');
             console.log(error.request);
           } else {
-            watchedState.form.error = i18nextInstance.t('errors.invalidURL');
+            watchedState.form.error = i18nextInstance.t('errors.invalidRSS');
             console.log('Error', error.message);
           }
           watchedState.form.request = 'failed';

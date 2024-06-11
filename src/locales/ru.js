@@ -21,7 +21,7 @@ export default {
       read: 'Читать полностью',
     },
     errors: {
-      invalidURL: 'Ресурс не содержит валидный RSS',
+      invalidRSS: 'Ресурс не содержит валидный RSS',
       rssExists: 'RSS уже существует',
       responseError: 'Нет ответа от сервера',
       requestError: 'Невозможно выполнить запрос',
