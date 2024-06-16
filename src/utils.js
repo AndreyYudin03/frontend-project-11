@@ -4,6 +4,13 @@ const extractTextFromHtml = (str) => {
   return match ? match[1] : str;
 };
 
+const createProxyUrl = (url) => {
+  const proxyUrl = new URL('https://allorigins.hexlet.app/get');
+  proxyUrl.searchParams.set('disableCache', 'true');
+  proxyUrl.searchParams.set('url', url);
+  return proxyUrl.toString();
+};
+
 class UniqueIDGenerator {
   constructor() {
     this.currentID = 0;
@@ -17,4 +24,4 @@ class UniqueIDGenerator {
 
 const uniqueIDGenerator = new UniqueIDGenerator();
 
-export { uniqueIDGenerator, extractTextFromHtml };
+export { uniqueIDGenerator, extractTextFromHtml, createProxyUrl };

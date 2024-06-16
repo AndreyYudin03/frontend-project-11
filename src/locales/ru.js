@@ -9,6 +9,7 @@ export default {
       submit: 'Добавить',
       errors: {
         enterValidURL: 'Ссылка должна быть валидным URL',
+        rssExists: 'RSS уже существует',
       },
     },
     main: {
@@ -22,7 +23,6 @@ export default {
     },
     errors: {
       invalidRSS: 'Ресурс не содержит валидный RSS',
-      rssExists: 'RSS уже существует',
       responseError: 'Нет ответа от сервера',
       requestError: 'Невозможно выполнить запрос',
     },
