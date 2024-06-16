@@ -40,7 +40,6 @@ export default (i18nextInstance) => {
     form: document.querySelector('.rss-form'),
     postsContainer: document.querySelector('.posts'),
     modalWindow: document.querySelector('.modal'),
-    // formFeedback: document.querySelector('.feedback'),
   };
 
   fillContent(elements, i18nextInstance);
@@ -59,7 +58,7 @@ export default (i18nextInstance) => {
         active: false,
       },
       error: '',
-      request: 'successful', // sending, sendingEnd
+      request: 'successful',
     },
     urls: [],
     feeds: [],

@@ -55,7 +55,6 @@ const updatePostsView = (state, postsContainer, i18nextInstance) => {
   </div>`;
 };
 
-// Обновление вида лент
 const updateFeedsView = (state, feedsContainer, i18nextInstance) => {
   const feedsHTML = state.feeds
     .map(
@@ -77,7 +76,6 @@ const updateFeedsView = (state, feedsContainer, i18nextInstance) => {
   </div>`;
 };
 
-// Обновление вида прочитанного поста
 const updatePostReadView = ({ readPost }) => {
   const updateReadPostClass = (element) => {
     element.classList.replace('fw-bold', 'fw-normal');
@@ -91,7 +89,6 @@ const updatePostReadView = ({ readPost }) => {
   }
 };
 
-// Обновление вида модального окна
 const updateModalView = (state) => {
   const { readPost, posts } = state;
   const modalWindow = document.querySelector('.modal');
