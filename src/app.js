@@ -66,8 +66,6 @@ export default (i18nextInstance) => {
     readPost: [],
   };
 
-  let updateTimeoutID;
-
   // CONTROLLER
   const validateInput = (input) => {
     const validationSchema = createValidationSchema(
@@ -96,9 +94,9 @@ export default (i18nextInstance) => {
   });
 
   const checkForUpdates = () => {
-    state.urls.forEach((url) => {
+    const requests = state.urls.map((url) => {
       const proxyUrl = createProxyUrl(url.link);
-      axios
+      return axios
         .get(proxyUrl)
         .then((response) => {
           if (
@@ -106,33 +104,49 @@ export default (i18nextInstance) => {
             && response.data.status
             && response.data.status.http_code !== 404
           ) {
-            const parsedRSS = parsRSS(response.data.contents);
+            try {
+              const parsedRSS = parsRSS(response.data.contents);
+              const newPosts = parsedRSS.posts
+                .filter(
+                  (post) => !state.posts.some(
+                    (statePost) => statePost.postHref === post.postHref,
+                  ),
+                )
+                .map((post) => ({
+                  ...post,
+                  id: uniqueIDGenerator.generateID(),
+                  urlID: url.id,
+                }));
 
-            const newPosts = parsedRSS.posts
-              .filter(
-                (post) => !state.posts.some(
-                  (statePost) => statePost.postHref === post.postHref,
-                ),
-              )
-              .map((post) => ({
-                ...post,
-                id: uniqueIDGenerator.generateID(),
-                urlID: url.id,
-              }));
-
-            watchedState.posts.unshift(...newPosts);
+              return newPosts;
+            } catch (error) {
+              console.error(`Failed to parse RSS for URL ${url.link}:`, error);
+              return [];
+            }
           } else {
             console.log(
               `Failed to update URL ${url.link}: HTTP code is 404 or status is undefined`,
             );
+            return [];
           }
         })
         .catch((error) => {
           console.log(`Failed to update URL ${url.link}:`, error);
+          return [];
         });
     });
 
-    updateTimeoutID = setTimeout(checkForUpdates, 5000);
+    Promise.all(requests)
+      .then((results) => {
+        const newPosts = results.flat();
+        watchedState.posts.unshift(...newPosts);
+      })
+      .catch((error) => {
+        console.log('Failed to update URLs:', error);
+      })
+      .finally(() => {
+        setTimeout(checkForUpdates, 5000);
+      });
   };
 
   const handleFormResponse = (response, urlValue) => {
@@ -141,29 +155,33 @@ export default (i18nextInstance) => {
       && response.data.status
       && response.data.status.http_code !== 404
     ) {
-      const parsedRSS = parsRSS(response.data.contents);
-      const urlID = uniqueIDGenerator.generateID();
-      state.urls.push({ id: urlID, link: urlValue });
-      const posts = parsedRSS.posts.map((post) => ({
-        ...post,
-        id: uniqueIDGenerator.generateID(),
-        urlID,
-        state: 'new',
-      }));
-      watchedState.posts.unshift(...posts);
-      watchedState.feeds.unshift({
-        id: uniqueIDGenerator.generateID(),
-        urlID,
-        feedTitle: parsedRSS.feedTitle,
-        feedDescription: parsedRSS.feedDescription,
-      });
-      watchedState.form.request = 'successful';
-      // form reset
-      state.form.input.urlValue = '';
-      state.form.error = '';
-      elements.form.reset();
-      if (!updateTimeoutID) {
-        updateTimeoutID = setTimeout(checkForUpdates, 5000);
+      try {
+        const parsedRSS = parsRSS(response.data.contents);
+        const urlID = uniqueIDGenerator.generateID();
+        state.urls.push({ id: urlID, link: urlValue });
+        const posts = parsedRSS.posts.map((post) => ({
+          ...post,
+          id: uniqueIDGenerator.generateID(),
+          urlID,
+          state: 'new',
+        }));
+        watchedState.posts.unshift(...posts);
+        watchedState.feeds.unshift({
+          id: uniqueIDGenerator.generateID(),
+          urlID,
+          feedTitle: parsedRSS.feedTitle,
+          feedDescription: parsedRSS.feedDescription,
+        });
+        watchedState.form.request = 'successful';
+        state.form.input.urlValue = '';
+        state.form.error = '';
+        elements.form.reset();
+
+        setTimeout(checkForUpdates, 5000);
+      } catch (error) {
+        watchedState.form.error = 'errors.invalidRSS';
+        watchedState.form.request = 'failed';
+        console.error('Failed to parse RSS:', error);
       }
     } else {
       watchedState.form.error = 'errors.invalidRSS';

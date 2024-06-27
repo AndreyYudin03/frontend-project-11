@@ -1,6 +1,13 @@
 const parsRSS = (data) => {
   const parser = new DOMParser();
   const rssXML = parser.parseFromString(data, 'text/xml');
+
+  const parserErrors = rssXML.querySelector('parsererror');
+  if (parserErrors !== null) {
+    const error = parserErrors.textContent;
+    throw new Error(error);
+  }
+
   const rssItems = rssXML.getElementsByTagName('item');
 
   const posts = Array.from(rssItems).map((rssItem) => {
