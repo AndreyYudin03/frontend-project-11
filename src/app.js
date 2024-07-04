@@ -99,7 +99,11 @@ export default (i18nextInstance) => {
       return axios
         .get(proxyUrl)
         .then((response) => {
-          if (response.data) {
+          if (
+            response.data
+            && response.data.status
+            && response.data.status.http_code !== 404
+          ) {
             try {
               const parsedRSS = parsRSS(response.data.contents);
               const newPosts = parsedRSS.posts
@@ -146,11 +150,7 @@ export default (i18nextInstance) => {
   };
 
   const handleFormResponse = (response, urlValue) => {
-    if (
-      response.data
-      && response.data.status
-      && response.data.status.http_code !== 404
-    ) {
+    if (response.data) {
       try {
         const parsedRSS = parsRSS(response.data.contents);
         const urlID = uniqueIDGenerator.generateID();
