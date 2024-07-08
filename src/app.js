@@ -55,7 +55,7 @@ export default (i18nextInstance) => {
         urlValue: '',
       },
       submit: {
-        active: false,
+        active: true,
       },
       error: '',
       request: 'successful',
@@ -74,23 +74,18 @@ export default (i18nextInstance) => {
     return validationSchema
       .validate(input)
       .then(() => {
-        state.form.submit.active = true;
         state.form.error = '';
       })
       .catch((error) => {
-        state.form.submit.active = false;
         state.form.error = error.message;
+        throw error;
       });
   };
 
   // input watched state
   const watchedState = onChange(state, (path) => {
+    console.log(state);
     render(state, path, i18nextInstance);
-    if (path === 'form.input.urlValue') {
-      validateInput(state.form.input).finally(() => {
-        render(state, path, i18nextInstance);
-      });
-    }
   });
 
   const checkForUpdates = () => {
@@ -196,14 +191,30 @@ export default (i18nextInstance) => {
     watchedState.form.request = 'failed';
   };
 
-  const handleFormSubmit = () => {
+  const handleFormSubmit = (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const urlValue = formData.get('url');
+
     watchedState.form.request = 'sending';
-    const { urlValue } = state.form.input;
-    const proxyUrl = createProxyUrl(urlValue);
-    axios
-      .get(proxyUrl)
+
+    validateInput({ urlValue })
+      .then(() => {
+        const proxyUrl = createProxyUrl(urlValue);
+        return axios.get(proxyUrl);
+      })
       .then((response) => handleFormResponse(response, urlValue))
-      .catch(handleFormError)
+      .catch((error) => {
+        if (
+          error.message === 'form.errors.rssExists'
+          || error.name === 'ValidationError'
+        ) {
+          watchedState.form.error = error.message;
+          watchedState.form.request = 'failed';
+        } else {
+          handleFormError(error);
+        }
+      })
       .finally(() => {
         elements.formInput.focus();
       });
@@ -223,15 +234,7 @@ export default (i18nextInstance) => {
     }
   };
 
-  // event listeners
-  elements.formInput.addEventListener('input', (e) => {
-    watchedState.form.input.urlValue = e.target.value;
-  });
-
-  elements.formSubmitButton.addEventListener('click', (e) => {
-    e.preventDefault();
-    handleFormSubmit();
-  });
+  elements.form.addEventListener('submit', handleFormSubmit);
 
   elements.postsContainer.addEventListener('click', (e) => {
     handlePostClick(e);

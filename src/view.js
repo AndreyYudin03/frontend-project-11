@@ -10,12 +10,10 @@ const updateInputView = (state, formInput) => {
 };
 
 const updateSubmitView = (state, formSubmit) => {
-  const hasError = Boolean(state.form.error);
   const { active } = state.form.submit;
-  const urlIsEmpty = state.form.input.urlValue.length === 0;
 
   if (formSubmit) {
-    formSubmit.disabled = hasError || !active || urlIsEmpty;
+    formSubmit.disabled = !active;
   }
 };
 
@@ -25,6 +23,9 @@ const updateFormFeedback = (state, formFeedback, i18nextInstance) => {
   if (hasError) {
     formFeedback.classList.replace('text-success', 'text-danger');
     formFeedback.textContent = i18nextInstance.t(state.form.error);
+  } else if (state.form.request === 'successful') {
+    formFeedback.classList.replace('text-danger', 'text-success');
+    formFeedback.textContent = i18nextInstance.t('successfulRequest');
   } else {
     formFeedback.textContent = '';
   }
@@ -120,7 +121,6 @@ export default (state, path, i18nextInstance) => {
   const feedsContainer = document.querySelector('.feeds');
 
   switch (path) {
-    case 'form.input.urlValue':
     case 'form.submit.active':
       updateInputView(state, formInput);
       updateSubmitView(state, formSubmit);
@@ -141,13 +141,13 @@ export default (state, path, i18nextInstance) => {
           break;
         case 'failed':
           formFeedback.classList.replace('text-success', 'text-danger');
-          formSubmit.disabled = true;
+          formSubmit.disabled = false;
           formInput.disabled = false;
           break;
         case 'successful':
           formFeedback.classList.replace('text-danger', 'text-success');
           formFeedback.textContent = i18nextInstance.t('successfulRequest');
-          formSubmit.disabled = true;
+          formSubmit.disabled = false;
           formInput.disabled = false;
           break;
         default:
@@ -155,6 +155,7 @@ export default (state, path, i18nextInstance) => {
             `(Render) Unknown request state: ${state.form.request}`,
           );
       }
+      updateFormFeedback(state, formFeedback, i18nextInstance);
       break;
     case 'posts':
       updatePostsView(state, postsContainer, i18nextInstance);
