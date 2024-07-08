@@ -23,7 +23,7 @@ export default {
     },
     errors: {
       invalidRSS: 'Ресурс не содержит валидный RSS',
-      responseError: 'Ошибка сети',
+      responseError: 'Нет ответа от сервера',
       requestError: 'Ошибка сети',
     },
     successfulRequest: 'RSS успешно загружен',
