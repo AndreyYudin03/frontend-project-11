@@ -24,7 +24,7 @@ export default {
     errors: {
       invalidRSS: 'Ресурс не содержит валидный RSS',
       responseError: 'Ошибка сети',
-      requestError: 'Невозможно выполнить запрос',
+      requestError: 'Ошибка сети',
     },
     successfulRequest: 'RSS успешно загружен',
   },
