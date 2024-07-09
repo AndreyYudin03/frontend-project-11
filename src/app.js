@@ -199,10 +199,7 @@ export default (i18nextInstance) => {
     watchedState.form.request = 'sending';
 
     validateInput({ urlValue })
-      .then(() => {
-        const proxyUrl = createProxyUrl(urlValue);
-        return axios.get(proxyUrl);
-      })
+      .then(() => axios.get(createProxyUrl(urlValue)))
       .then((response) => handleFormResponse(response, urlValue))
       .catch((error) => {
         if (
